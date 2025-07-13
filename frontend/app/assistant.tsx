@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useThreadStore } from "@/lib/thread-store";
 import { SmartModelSelector } from "@/components/smart-model-selector";
+import { SpendTracker } from "@/components/spend-tracker";
 
 export const Assistant = () => {
   const [selectedModel, setSelectedModel] = useState("gpt-4o");
@@ -39,7 +40,8 @@ export const Assistant = () => {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <SpendTracker />
               <SmartModelSelector
                 selectedModel={selectedModel}
                 onModelChange={setSelectedModel}

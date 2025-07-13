@@ -1,12 +1,14 @@
 import json
 import os
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import json
+import os
+import requests
 from database import get_db, Base, engine
 from models import Thread, Message
 from schemas import (
@@ -265,6 +267,54 @@ def delete_thread(thread_id: str, db: Session = Depends(get_db)):
 def get_messages(thread_id: str, db: Session = Depends(get_db)):
     """Get all messages for a thread"""
     return crud.get_messages(db, thread_id)
+
+
+@app.get("/api/spend")
+def get_spend_data(
+    start_date: str = Query(..., description="Start date in YYYY-MM-DD format"),
+    end_date: str = Query(..., description="End date in YYYY-MM-DD format"),
+):
+    """Get spend data from LiteLLM API"""
+    try:
+        api_key = os.getenv("LITELLM_API_KEY")
+        base_url = os.getenv("BASE_URL", "https://litellm.sph-prod.ethz.ch/")
+
+        if not api_key:
+            raise HTTPException(
+                status_code=500, detail="LITELLM_API_KEY not configured"
+            )
+
+        if base_url.endswith("/v1") or base_url.endswith("/v1/"):
+            base_url = base_url.replace("/v1/", "/").replace("/v1", "")
+
+        if base_url.endswith("/"):
+            base_url = base_url[:-1]
+
+        url = f"{base_url}/user/daily/activity"
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        }
+
+        params = {"start_date": start_date, "end_date": end_date}
+
+        response = requests.get(url, headers=headers, params=params)
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"LiteLLM API error: {response.text}",
+            )
+
+        return response.json()
+
+    except requests.RequestException as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch spend data: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
 
 if __name__ == "__main__":
