@@ -7,15 +7,18 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { ModelSelector } from "@/components/model-selector";
+import { useThreadStore } from "@/lib/thread-store";
 
 export const Assistant = () => {
   const [selectedModel, setSelectedModel] = useState("openai");
+  const { currentThreadId, threads } = useThreadStore();
+
+  const currentThread = threads.find(t => t.id === currentThreadId);
 
   return (
-    <RuntimeProvider modelProvider={selectedModel}>
+    <RuntimeProvider modelProvider={selectedModel} selectedThreadId={currentThreadId}>
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar selectedModel={selectedModel} onModelChange={setSelectedModel} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger />
@@ -30,17 +33,11 @@ export const Assistant = () => {
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
                   <BreadcrumbPage>
-                    Current Chat
+                    {currentThread?.title || "New Chat"}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
-            <div className="ml-auto">
-              <ModelSelector
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-              />
-            </div>
           </header>
           <Thread />
         </SidebarInset>

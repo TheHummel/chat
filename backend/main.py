@@ -60,14 +60,14 @@ async def chat_endpoint(request_body: ChatRequest, db: Session = Depends(get_db)
             async for chunk in chat_pipeline.stream_response(
                 request_body.messages, db, thread_id, model_provider
             ):
-                data = json.dumps({"text": chunk})
+                data = json.dumps({"text": chunk, "thread_id": thread_id})
                 yield f"data: {data}\n\n"
         except Exception as e:
-            error_data = json.dumps({"error": str(e)})
+            error_data = json.dumps({"error": str(e), "thread_id": thread_id})
             yield f"data: {error_data}\n\n"
         finally:
             # send done
-            yield f"data: {json.dumps({'done': True})}\n\n"
+            yield f"data: {json.dumps({'done': True, 'thread_id': thread_id})}\n\n"
 
     return StreamingResponse(
         stream_generator(),

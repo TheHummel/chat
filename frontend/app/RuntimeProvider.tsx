@@ -1,10 +1,11 @@
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useEffect } from "react";
 import {
     useExternalStoreRuntime,
     ThreadMessageLike,
     AppendMessage,
     AssistantRuntimeProvider,
 } from "@assistant-ui/react";
+import { useThreadStore } from "@/lib/thread-store";
 
 interface MyMessage {
     role: "user" | "assistant";
@@ -86,15 +87,57 @@ const streamBackendApi = async (
 
 export function RuntimeProvider({
     children,
-    modelProvider = "openai"
+    modelProvider = "openai",
+    selectedThreadId = null
 }: Readonly<{
     children: ReactNode;
     modelProvider?: string;
+    selectedThreadId?: string | null;
 }>) {
     const [isRunning, setIsRunning] = useState(false);
     const [messages, setMessages] = useState<MyMessage[]>([]);
-    const [threadId, setThreadId] = useState<string | null>(null);
+    const [threadId, setThreadId] = useState<string | null>(selectedThreadId);
     const [currentStreamingMessage, setCurrentStreamingMessage] = useState<string>("");
+    const [isLoadingThread, setIsLoadingThread] = useState(false);
+
+    const { fetchThreads, updateThread, setCurrentThread } = useThreadStore();
+
+    // load messages from selected thread
+    const loadThreadMessages = async (threadIdToLoad: string) => {
+        setIsLoadingThread(true);
+        try {
+            const response = await fetch(`http://localhost:8000/api/threads/${threadIdToLoad}/messages`);
+            if (response.ok) {
+                const threadMessages = await response.json();
+                const convertedMessages: MyMessage[] = threadMessages.map((msg: any) => ({
+                    role: msg.role as "user" | "assistant",
+                    content: Array.isArray(msg.content)
+                        ? msg.content.map((item: any) => ({ type: item.type || "text", text: item.text || "" }))
+                        : [{ type: "text", text: msg.content || "" }]
+                }));
+                setMessages(convertedMessages);
+            } else {
+                console.error('Failed to load thread messages');
+                setMessages([]);
+            }
+        } catch (error) {
+            console.error('Error loading thread messages:', error);
+            setMessages([]);
+        } finally {
+            setIsLoadingThread(false);
+        }
+    };
+
+    // handle thread selection changes
+    useEffect(() => {
+        if (selectedThreadId && selectedThreadId !== threadId) {
+            setThreadId(selectedThreadId);
+            loadThreadMessages(selectedThreadId);
+        } else if (!selectedThreadId && threadId) {
+            setThreadId(null);
+            setMessages([]);
+        }
+    }, [selectedThreadId]);
 
     const onNew = async (message: AppendMessage) => {
         if (message.content[0]?.type !== "text")
@@ -134,7 +177,10 @@ export function RuntimeProvider({
 
             if (newThreadId && !threadId) {
                 setThreadId(newThreadId);
+                setCurrentThread(newThreadId);
             }
+
+            await fetchThreads();
 
         } catch (error) {
             console.error("Error calling backend:", error);
@@ -158,7 +204,7 @@ export function RuntimeProvider({
     }
 
     const runtime = useExternalStoreRuntime({
-        isRunning,
+        isRunning: isRunning || isLoadingThread,
         messages: allMessages,
         convertMessage,
         onNew,
