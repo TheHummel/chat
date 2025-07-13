@@ -1,0 +1,83 @@
+import os
+from typing import List, AsyncGenerator
+from sqlalchemy.orm import Session
+import openai
+from schemas import MessageCreate, ContentItem
+import crud
+
+
+class ChatPipeline:
+    def __init__(self):
+        # init API client with LiteLLM endpoint
+        self.client = openai.AsyncOpenAI(
+            api_key=os.getenv("LITELLM_API_KEY"), base_url=os.getenv("BASE_URL")
+        )
+
+        self.models = {
+            "openai": "gpt-4o",
+            "anthropic": "claude-3.7-sonnet",
+            "claude": "claude-3.7-sonnet",
+            "gemini": "gemini/gemini-2.5-flash",
+            "google": "gemini/gemini-2.5-flash",
+        }
+
+    async def stream_response(
+        self,
+        messages: List[MessageCreate],
+        db: Session,
+        thread_id: str,
+        model_provider: str = "openai",
+    ) -> AsyncGenerator[str, None]:
+        """Stream response from the specified model provider via LiteLLM"""
+
+        model = self.models.get(model_provider.lower())
+        if not model:
+            yield f"Error: Unknown model provider '{model_provider}'. Available: {list(self.models.keys())}"
+            return
+
+        chat_messages = []
+        for msg in messages:
+            content = "".join(item.text for item in msg.content if item.type == "text")
+            chat_messages.append({"role": msg.role, "content": content})
+
+        # stream response
+        full_response = ""
+        try:
+            stream = await self.client.chat.completions.create(
+                model=model,
+                messages=chat_messages,
+                stream=True,
+                temperature=0.7,
+                max_tokens=2000,
+            )
+
+            async for chunk in stream:
+                if (
+                    chunk.choices
+                    and len(chunk.choices) > 0
+                    and chunk.choices[0].delta
+                    and chunk.choices[0].delta.content
+                ):
+                    content = chunk.choices[0].delta.content
+                    full_response += content
+                    yield content
+
+        except Exception as e:
+            error_msg = f"Error with {model}: {str(e)}"
+            print(f"Pipeline error: {error_msg}")
+            yield error_msg
+            full_response = error_msg
+
+        # save assistant response to database
+        if full_response and not full_response.startswith("Error"):
+            try:
+                assistant_message = MessageCreate(
+                    role="assistant",
+                    content=[ContentItem(type="text", text=full_response)],
+                )
+                crud.create_message(db, assistant_message, thread_id)
+            except Exception as e:
+                print(f"Database save error: {e}")
+
+
+chat_pipeline = ChatPipeline()
