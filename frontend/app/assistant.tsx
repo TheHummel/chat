@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { useThreadStore } from "@/lib/thread-store";
+import { SmartModelSelector } from "@/components/smart-model-selector";
 
 export const Assistant = () => {
   const [selectedModel, setSelectedModel] = useState("gpt-4o");
@@ -18,7 +19,7 @@ export const Assistant = () => {
   return (
     <RuntimeProvider modelProvider={selectedModel} selectedThreadId={currentThreadId}>
       <SidebarProvider>
-        <AppSidebar selectedModel={selectedModel} onModelChange={setSelectedModel} />
+        <AppSidebar />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger />
@@ -38,6 +39,12 @@ export const Assistant = () => {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+            <div className="ml-auto">
+              <SmartModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+              />
+            </div>
           </header>
           <Thread />
         </SidebarInset>
