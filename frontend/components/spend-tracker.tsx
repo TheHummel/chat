@@ -23,7 +23,6 @@ export function SpendTracker() {
 
         try {
             const startDate = '2023-01-01'
-
             const today = new Date()
             const formattedToday = today.toISOString().split('T')[0]
             const endDate = formattedToday
@@ -61,9 +60,9 @@ export function SpendTracker() {
 
     const formatSpend = (spend: number) => {
         if (spend < 0.01) {
-            return `${(spend * 1000).toFixed(2)}m`
+            return `${(spend * 1000).toFixed(2)}m¢`
         }
-        return `${spend.toFixed(4)}`
+        return `$${spend.toFixed(4)}`
     }
 
     const getTooltipContent = () => {
@@ -71,7 +70,7 @@ export function SpendTracker() {
         if (!spendData) return "Loading spend data..."
 
         return `Total Usage (All Time):
-• Spend: $${formatSpend(spendData.total_spend)}
+• Spend: ${formatSpend(spendData.total_spend)}
 • Tokens: ${spendData.total_tokens.toLocaleString()}
 • Requests: ${spendData.total_successful_requests}/${spendData.total_api_requests}
 • Failed: ${spendData.total_failed_requests}`
@@ -82,19 +81,24 @@ export function SpendTracker() {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <div
-                        className="flex items-center gap-2 px-3 py-1 rounded-md border bg-background/50 hover:bg-accent/50 transition-colors cursor-pointer"
+                        className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-200 cursor-pointer shadow-lg"
                         onClick={fetchSpendData}
                     >
-                        <div className="flex items-center justify-center h-6 w-6">
-                            {loading ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                            ) : (
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            )}
+                        <div className="flex items-center gap-1">
+                            <DollarSign className="size-4" />
+                            <span className="text-xs text-muted-foreground">Total spent:</span>
                         </div>
-                        <span className="text-sm font-medium text-foreground min-w-[50px]">
-                            {error ? 'Error' : spendData ? formatSpend(spendData.total_spend) : '...'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-center h-6 min-w-[60px]">
+                                {loading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                ) : (
+                                    <span className="text-sm font-medium text-foreground">
+                                        {error ? 'Error' : spendData ? formatSpend(spendData.total_spend) : '...'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </TooltipTrigger>
                 <TooltipContent>

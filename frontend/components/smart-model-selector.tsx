@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState, useEffect } from "react"
-import { Brain, ChevronDown } from "lucide-react"
+import { Brain } from "lucide-react"
 import {
     Select,
     SelectContent,
@@ -103,9 +103,15 @@ export function SmartModelSelector({ selectedModel, onModelChange }: SmartModelS
 
     if (isLoading) {
         return (
-            <div className="flex items-center gap-2">
-                <Brain className="size-4 animate-pulse" />
-                <div className="w-32 h-8 bg-muted animate-pulse rounded" />
+            <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md shadow-lg">
+                <div className="flex items-center gap-1">
+                    <Brain className="size-4 animate-pulse" />
+                    <span className="text-xs text-muted-foreground">Model:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-32 h-6 bg-muted animate-pulse rounded" />
+                    <div className="w-48 h-6 bg-muted animate-pulse rounded" />
+                </div>
             </div>
         )
     }
@@ -114,53 +120,57 @@ export function SmartModelSelector({ selectedModel, onModelChange }: SmartModelS
     const availableModels = getAvailableModels()
 
     return (
-        <div className="flex items-center gap-2">
-            <Brain className="size-4" />
+        <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-200 shadow-lg">
+            <div className="flex items-center gap-1">
+                <Brain className="size-4" />
+                <span className="text-xs text-muted-foreground">Model:</span>
+            </div>
+            <div className="flex items-center gap-2">
+                {/* Provider Selector */}
+                <Select value={selectedProvider} onValueChange={handleProviderChange}>
+                    <SelectTrigger className="w-32 h-6 min-w-[8rem] border-0 bg-transparent hover:bg-white/10 transition-all duration-200 data-[state=open]:bg-white/10 shadow-none text-sm">
+                        <SelectValue>
+                            {providerDisplayNames[selectedProvider as keyof typeof providerDisplayNames] || selectedProvider}
+                        </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {modelsData && Object.keys(modelsData.providers).map((provider) => (
+                            <SelectItem key={provider} value={provider}>
+                                <span className="font-medium">
+                                    {providerDisplayNames[provider as keyof typeof providerDisplayNames] || provider}
+                                </span>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
 
-            {/* Provider Selector */}
-            <Select value={selectedProvider} onValueChange={handleProviderChange}>
-                <SelectTrigger className="w-32 h-8 bg-background border">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    {modelsData && Object.keys(modelsData.providers).map((provider) => (
-                        <SelectItem key={provider} value={provider}>
-                            <span className="font-medium">
-                                {providerDisplayNames[provider as keyof typeof providerDisplayNames] || provider}
-                            </span>
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-
-            {/* Model Selector */}
-            <Select value={selectedModel} onValueChange={onModelChange}>
-                <SelectTrigger className="w-48 h-8 bg-background border">
-                    <SelectValue placeholder="Select model">
-                        {currentModel ? (
-                            <div className="flex flex-col items-start">
+                {/* Model Selector */}
+                <Select value={selectedModel} onValueChange={onModelChange}>
+                    <SelectTrigger className="w-48 h-6 min-w-[12rem] border-0 bg-transparent hover:bg-white/10 transition-all duration-200 data-[state=open]:bg-white/10 shadow-none text-sm">
+                        <SelectValue placeholder="Select model">
+                            {currentModel ? (
                                 <span className="text-sm font-medium truncate">
                                     {currentModel.name}
                                 </span>
-                            </div>
-                        ) : (
-                            "Select model"
-                        )}
-                    </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                    {availableModels.map((model) => (
-                        <SelectItem key={model.id} value={model.id}>
-                            <div className="flex flex-col items-start">
-                                <span className="font-medium">{model.name}</span>
-                                <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                                    {model.full_name}
-                                </span>
-                            </div>
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+                            ) : (
+                                "Select model"
+                            )}
+                        </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableModels.map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                                <div className="flex flex-col items-start">
+                                    <span className="font-medium">{model.name}</span>
+                                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                        {model.full_name}
+                                    </span>
+                                </div>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
     )
 }
