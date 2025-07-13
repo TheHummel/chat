@@ -124,7 +124,7 @@ export function ThreadList() {
                             <div
                                 key={thread.id}
                                 className={cn(
-                                    "group flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors",
+                                    "group flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors min-h-[60px]",
                                     currentThreadId === thread.id && "bg-accent"
                                 )}
                             >
@@ -136,55 +136,59 @@ export function ThreadList() {
                                             value={editingTitle}
                                             onChange={(e) => setEditingTitle(e.target.value)}
                                             onKeyDown={(e) => handleKeyDown(e, thread.id)}
-                                            className="flex-grow h-8 text-sm"
+                                            className="flex-1 h-8 text-sm"
                                             autoFocus
                                         />
-                                        <TooltipIconButton
-                                            onClick={() => handleEditSave(thread.id)}
-                                            className="hover:text-green-600 text-foreground size-6 p-0"
-                                            variant="ghost"
-                                            tooltip="Save"
-                                        >
-                                            <Check className="h-3 w-3" />
-                                        </TooltipIconButton>
-                                        <TooltipIconButton
-                                            onClick={handleEditCancel}
-                                            className="hover:text-red-600 text-foreground size-6 p-0"
-                                            variant="ghost"
-                                            tooltip="Cancel"
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </TooltipIconButton>
+                                        <div className="flex gap-1 flex-shrink-0">
+                                            <TooltipIconButton
+                                                onClick={() => handleEditSave(thread.id)}
+                                                className="hover:text-green-600 text-foreground size-6 p-0"
+                                                variant="ghost"
+                                                tooltip="Save"
+                                            >
+                                                <Check className="h-3 w-3" />
+                                            </TooltipIconButton>
+                                            <TooltipIconButton
+                                                onClick={handleEditCancel}
+                                                className="hover:text-red-600 text-foreground size-6 p-0"
+                                                variant="ghost"
+                                                tooltip="Cancel"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </TooltipIconButton>
+                                        </div>
                                     </>
                                 ) : (
                                     <>
                                         <button
                                             onClick={() => setCurrentThread(thread.id)}
-                                            className="flex-grow text-start py-2"
+                                            className="flex-1 text-start py-2 min-w-0 mr-2"
                                         >
-                                            <div className="text-sm font-medium truncate">
+                                            <div className="text-sm font-medium truncate pr-2">
                                                 {getThreadTitle(thread)}
                                             </div>
-                                            <div className="text-xs text-muted-foreground">
+                                            <div className="text-xs text-muted-foreground truncate pr-2">
                                                 {thread.message_count} messages • {formatDate(thread.updated_at)}
                                             </div>
                                         </button>
-                                        <TooltipIconButton
-                                            onClick={() => handleEditStart(thread.id, thread.title)}
-                                            className="opacity-0 group-hover:opacity-100 hover:text-primary text-foreground size-6 p-0"
-                                            variant="ghost"
-                                            tooltip="Edit name"
-                                        >
-                                            <Edit3 className="h-3 w-3" />
-                                        </TooltipIconButton>
-                                        <TooltipIconButton
-                                            onClick={() => handleDelete(thread.id)}
-                                            className="opacity-0 group-hover:opacity-100 hover:text-destructive text-foreground size-6 p-0"
-                                            variant="ghost"
-                                            tooltip="Delete thread"
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </TooltipIconButton>
+                                        <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <TooltipIconButton
+                                                onClick={() => handleEditStart(thread.id, thread.title)}
+                                                className="hover:text-primary text-foreground size-6 p-0"
+                                                variant="ghost"
+                                                tooltip="Edit name"
+                                            >
+                                                <Edit3 className="h-3 w-3" />
+                                            </TooltipIconButton>
+                                            <TooltipIconButton
+                                                onClick={() => handleDelete(thread.id)}
+                                                className="hover:text-destructive text-foreground size-6 p-0"
+                                                variant="ghost"
+                                                tooltip="Delete thread"
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </TooltipIconButton>
+                                        </div>
                                     </>
                                 )}
                             </div>
