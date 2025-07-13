@@ -51,6 +51,21 @@ def delete_thread(db: Session, thread_id: str) -> bool:
     return False
 
 
+def delete_all_threads(db: Session) -> int:
+    """Delete all threads and their messages"""
+    # tet count before deletion
+    thread_count = db.query(Thread).count()
+
+    # delete all messages first
+    db.query(Message).delete()
+
+    # delete all threads
+    db.query(Thread).delete()
+
+    db.commit()
+    return thread_count
+
+
 def create_message(db: Session, message: MessageCreate, thread_id: str) -> Message:
     """Create a new message in a thread"""
     message_id = str(uuid.uuid4())

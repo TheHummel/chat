@@ -17,7 +17,8 @@ export function ThreadList() {
         createNewThread,
         updateThreadTitle,
         removeThread,
-        setCurrentThread
+        setCurrentThread,
+        clearAllThreads
     } = useThreadStore()
 
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -58,11 +59,19 @@ export function ThreadList() {
     }
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this chat?')) {
+        try {
+            await removeThread(id)
+        } catch (error) {
+            console.error('Failed to delete thread:', error)
+        }
+    }
+
+    const handleClearAll = async () => {
+        if (confirm('You sure you want to delete ALL chats? This action cannot be undone.')) {
             try {
-                await removeThread(id)
+                await clearAllThreads()
             } catch (error) {
-                console.error('Failed to delete thread:', error)
+                console.error('Failed to clear all threads:', error)
             }
         }
     }
@@ -98,14 +107,25 @@ export function ThreadList() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
                 <h2 className="font-semibold">Chats</h2>
-                <Button
-                    onClick={handleNewThread}
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0"
-                >
-                    <Plus className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                    <TooltipIconButton
+                        onClick={handleClearAll}
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:text-destructive"
+                        tooltip="Clear all chat history"
+                        disabled={threads.length === 0}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </TooltipIconButton>
+                    <Button
+                        onClick={handleNewThread}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                    >
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
 
             {/* Thread List */}

@@ -263,6 +263,13 @@ def delete_thread(thread_id: str, db: Session = Depends(get_db)):
     return {"message": "Thread deleted"}
 
 
+@app.delete("/api/threads")
+def delete_all_threads(db: Session = Depends(get_db)):
+    """Delete all threads and their messages"""
+    deleted_count = crud.delete_all_threads(db)
+    return {"message": f"Deleted {deleted_count} threads and all associated messages"}
+
+
 @app.get("/api/threads/{thread_id}/messages", response_model=List[MessageResponse])
 def get_messages(thread_id: str, db: Session = Depends(get_db)):
     """Get all messages for a thread"""

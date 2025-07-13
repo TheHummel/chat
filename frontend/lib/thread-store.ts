@@ -26,6 +26,7 @@ interface ThreadStore {
     createNewThread: () => Promise<ThreadItem>
     updateThreadTitle: (id: string, title: string) => Promise<void>
     removeThread: (id: string) => Promise<void>
+    clearAllThreads: () => Promise<void>
 }
 
 export const useThreadStore = create<ThreadStore>((set, get) => ({
@@ -120,6 +121,22 @@ export const useThreadStore = create<ThreadStore>((set, get) => ({
             get().deleteThread(id)
         } catch (error) {
             console.error('Error deleting thread:', error)
+            throw error
+        }
+    },
+
+    clearAllThreads: async () => {
+        try {
+            const response = await fetch('http://localhost:8000/api/threads', {
+                method: 'DELETE'
+            })
+
+            if (!response.ok) throw new Error('Failed to clear all threads')
+
+            // clear local state
+            set({ threads: [], currentThreadId: null })
+        } catch (error) {
+            console.error('Error clearing all threads:', error)
             throw error
         }
     }
