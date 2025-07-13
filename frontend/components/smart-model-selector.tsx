@@ -103,7 +103,7 @@ export function SmartModelSelector({ selectedModel, onModelChange }: SmartModelS
 
     if (isLoading) {
         return (
-            <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md shadow-lg">
+            <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1),0_10px_15px_-3px_rgba(0,0,0,0.1)]">
                 <div className="flex items-center gap-1">
                     <Brain className="size-4 animate-pulse" />
                     <span className="text-xs text-muted-foreground">Model:</span>
@@ -120,7 +120,7 @@ export function SmartModelSelector({ selectedModel, onModelChange }: SmartModelS
     const availableModels = getAvailableModels()
 
     return (
-        <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-200 shadow-lg">
+        <div className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1),0_10px_15px_-3px_rgba(0,0,0,0.1)]">
             <div className="flex items-center gap-1">
                 <Brain className="size-4" />
                 <span className="text-xs text-muted-foreground">Model:</span>

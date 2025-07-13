@@ -81,7 +81,7 @@ export function SpendTracker() {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <div
-                        className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-200 cursor-pointer shadow-lg"
+                        className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-200 cursor-pointer shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1),0_10px_15px_-3px_rgba(0,0,0,0.1)]"
                         onClick={fetchSpendData}
                     >
                         <div className="flex items-center gap-1">
