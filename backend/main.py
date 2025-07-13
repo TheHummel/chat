@@ -4,8 +4,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
 import json
-from database import get_db
-from models import Base, engine
+from database import get_db, Base, engine
+from models import Thread, Message
 from schemas import (
     ThreadCreate,
     ThreadResponse,

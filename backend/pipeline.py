@@ -76,6 +76,29 @@ class ChatPipeline:
                     content=[ContentItem(type="text", text=full_response)],
                 )
                 crud.create_message(db, assistant_message, thread_id)
+
+                # auto-generate title from first user message if thread doesn't have one
+                thread = crud.get_thread(db, thread_id)
+                if thread and (not thread.title or thread.title == "New Chat"):
+                    all_messages = crud.get_messages(db, thread_id)
+                    first_user_message = next(
+                        (msg for msg in all_messages if msg.role == "user"), None
+                    )
+                    if first_user_message:
+                        if isinstance(first_user_message.content, list):
+                            content = "".join(
+                                item.get("text", "")
+                                for item in first_user_message.content
+                                if item.get("type") == "text"
+                            )
+                        else:
+                            content = str(first_user_message.content)
+                        auto_title = content.strip()[:50]
+                        if len(content) > 50:
+                            auto_title += "..."
+                        if auto_title:
+                            crud.update_thread_title(db, thread_id, auto_title)
+
             except Exception as e:
                 print(f"Database save error: {e}")
 
