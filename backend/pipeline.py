@@ -13,27 +13,16 @@ class ChatPipeline:
             api_key=os.getenv("LITELLM_API_KEY"), base_url=os.getenv("BASE_URL")
         )
 
-        self.models = {
-            "openai": "gpt-4o",
-            "anthropic": "claude-3.7-sonnet",
-            "claude": "claude-3.7-sonnet",
-            "gemini": "gemini/gemini-2.5-flash",
-            "google": "gemini/gemini-2.5-flash",
-        }
-
     async def stream_response(
         self,
         messages: List[MessageCreate],
         db: Session,
         thread_id: str,
-        model_provider: str = "openai",
+        model_id: str = "gpt-4o",
     ) -> AsyncGenerator[str, None]:
-        """Stream response from the specified model provider via LiteLLM"""
+        """Stream response from the specified model via LiteLLM"""
 
-        model = self.models.get(model_provider.lower())
-        if not model:
-            yield f"Error: Unknown model provider '{model_provider}'. Available: {list(self.models.keys())}"
-            return
+        model = model_id
 
         chat_messages = []
         for msg in messages:

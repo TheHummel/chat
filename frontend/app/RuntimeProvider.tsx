@@ -27,7 +27,7 @@ const convertMessage = (message: MyMessage): ThreadMessageLike => {
 const streamBackendApi = async (
     messages: MyMessage[],
     threadId: string | null,
-    modelProvider: string = "openai",
+    modelId: string = "gpt-4o",
     onChunk: (chunk: string) => void
 ): Promise<{ threadId: string }> => {
     const response = await fetch("http://localhost:8000/api/chat", {
@@ -41,7 +41,7 @@ const streamBackendApi = async (
                 content: msg.content
             })),
             thread_id: threadId,
-            model_provider: modelProvider
+            model_provider: modelId  // Send full model ID
         }),
     });
 
@@ -87,7 +87,7 @@ const streamBackendApi = async (
 
 export function RuntimeProvider({
     children,
-    modelProvider = "openai",
+    modelProvider = "gpt-4o",
     selectedThreadId = null
 }: Readonly<{
     children: ReactNode;
@@ -160,7 +160,7 @@ export function RuntimeProvider({
             const { threadId: newThreadId } = await streamBackendApi(
                 [...messages, userMessage],
                 threadId,
-                modelProvider,
+                modelProvider,  // This is now the full model ID
                 (chunk: string) => {
                     assistantText += chunk;
                     setCurrentStreamingMessage(assistantText);

@@ -10,7 +10,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { useThreadStore } from "@/lib/thread-store";
 
 export const Assistant = () => {
-  const [selectedModel, setSelectedModel] = useState("openai");
+  const [selectedModel, setSelectedModel] = useState("gpt-4o");
   const { currentThreadId, threads } = useThreadStore();
 
   const currentThread = threads.find(t => t.id === currentThreadId);

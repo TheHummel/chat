@@ -12,7 +12,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { ThreadList } from "./thread-list"
-import { ModelSelector } from "./model-selector"
+import { SmartModelSelector } from "./smart-model-selector"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   selectedModel: string
@@ -24,7 +24,7 @@ export function AppSidebar({ selectedModel, onModelChange, ...props }: AppSideba
     <Sidebar {...props}>
       <SidebarHeader>
         <div className="p-2">
-          <ModelSelector
+          <SmartModelSelector
             selectedModel={selectedModel}
             onModelChange={onModelChange}
           />
