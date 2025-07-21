@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17
+    container_name: chatdb
+    environment:
+      POSTGRES_DB: chatdb
+      POSTGRES_USER: jannis
+      POSTGRES_PASSWORD: 3318
+    ports:
+      - "5432:5432"
+    volumes:
+      - chat_postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    restart: unless-stopped
+
+volumes:
+  chat_postgres_data:
