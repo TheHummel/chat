@@ -195,6 +195,131 @@ export function RuntimeProvider({
         }
     };
 
+    const onEdit = async (message: AppendMessage) => {
+        if (message.content[0]?.type !== "text")
+            throw new Error("Only text messages are supported");
+
+        const parentId = message.parentId;
+        let parentIndex = -1;
+
+        if (parentId) {
+            parentIndex = messages.findIndex((m, index) => index.toString() === parentId);
+        }
+
+        const newMessages = parentIndex >= 0 ? messages.slice(0, parentIndex + 1) : [];
+
+        const editedMessage: MyMessage = {
+            role: "user",
+            content: [{ type: "text", text: message.content[0].text }]
+        };
+
+        // add edited message
+        newMessages.push(editedMessage);
+        setMessages(newMessages);
+        setIsRunning(true);
+        setCurrentStreamingMessage("");
+
+        try {
+            let assistantText = "";
+
+            await streamBackendApi(
+                newMessages,
+                threadId,
+                modelProvider,
+                (chunk: string) => {
+                    assistantText += chunk;
+                    setCurrentStreamingMessage(assistantText);
+                }
+            );
+
+            const assistantMessage: MyMessage = {
+                role: "assistant",
+                content: [{ type: "text", text: assistantText }]
+            };
+
+            setMessages([...newMessages, assistantMessage]);
+            setCurrentStreamingMessage("");
+
+            await fetchThreads();
+
+        } catch (error) {
+            console.error("Error editing message:", error);
+            const errorMessage: MyMessage = {
+                role: "assistant",
+                content: [{ type: "text", text: "Sorry, I encountered an error while editing. Please try again." }]
+            };
+            setMessages([...newMessages, errorMessage]);
+            setCurrentStreamingMessage("");
+        } finally {
+            setIsRunning(false);
+        }
+    };
+
+    const onReload = async (parentId: string | null) => {
+        let messagesToKeep: MyMessage[];
+
+        if (parentId === null) {
+            // reload from beginning
+            messagesToKeep = messages.filter(msg => msg.role === "user");
+        } else {
+            // find parent message and keep messages up to and including it
+            const parentIndex = parseInt(parentId);
+            if (parentIndex >= 0 && parentIndex < messages.length) {
+                messagesToKeep = messages.slice(0, parentIndex + 1);
+            } else {
+                messagesToKeep = messages;
+            }
+        }
+
+        // remove any trailing assistant messages
+        while (messagesToKeep.length > 0 && messagesToKeep[messagesToKeep.length - 1].role === "assistant") {
+            messagesToKeep.pop();
+        }
+
+        if (messagesToKeep.length === 0) {
+            return;
+        }
+
+        setMessages(messagesToKeep);
+        setIsRunning(true);
+        setCurrentStreamingMessage("");
+
+        try {
+            let assistantText = "";
+
+            await streamBackendApi(
+                messagesToKeep,
+                threadId,
+                modelProvider,
+                (chunk: string) => {
+                    assistantText += chunk;
+                    setCurrentStreamingMessage(assistantText);
+                }
+            );
+
+            const assistantMessage: MyMessage = {
+                role: "assistant",
+                content: [{ type: "text", text: assistantText }]
+            };
+
+            setMessages([...messagesToKeep, assistantMessage]);
+            setCurrentStreamingMessage("");
+
+            await fetchThreads();
+
+        } catch (error) {
+            console.error("Error reloading message:", error);
+            const errorMessage: MyMessage = {
+                role: "assistant",
+                content: [{ type: "text", text: "Sorry, I encountered an error while reloading. Please try again." }]
+            };
+            setMessages([...messagesToKeep, errorMessage]);
+            setCurrentStreamingMessage("");
+        } finally {
+            setIsRunning(false);
+        }
+    };
+
     const allMessages = [...messages];
     if (currentStreamingMessage) {
         allMessages.push({
@@ -206,8 +331,18 @@ export function RuntimeProvider({
     const runtime = useExternalStoreRuntime({
         isRunning: isRunning || isLoadingThread,
         messages: allMessages,
+        setMessages: (newMessages: MyMessage[]) => {
+            const filteredMessages = newMessages.filter(msg =>
+                !(msg.role === "assistant" && currentStreamingMessage &&
+                    msg.content[0]?.text === currentStreamingMessage)
+            );
+            setMessages(filteredMessages);
+            setCurrentStreamingMessage("");
+        },
         convertMessage,
         onNew,
+        onEdit,
+        onReload,
     });
 
     return (
