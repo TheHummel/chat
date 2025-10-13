@@ -37,7 +37,7 @@ class ChatPipeline:
                 messages=chat_messages,
                 stream=True,
                 temperature=0.7,
-                max_tokens=2000,
+                max_tokens=None,
             )
 
             async for chunk in stream:
