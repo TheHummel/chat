@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { DollarSign, Loader2 } from "lucide-react"
+import { Loader2, Zap } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SpendData {
@@ -81,23 +81,18 @@ export function SpendTracker() {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <div
-                        className="flex flex-col gap-1 px-3 py-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-200 cursor-pointer shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1),0_10px_15px_-3px_rgba(0,0,0,0.1)]"
+                        className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={fetchSpendData}
                     >
-                        <div className="flex items-center gap-1">
-                            <DollarSign className="size-4" />
-                            <span className="text-xs text-muted-foreground">Total spent:</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center justify-center h-6 min-w-[60px]">
-                                {loading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                                ) : (
-                                    <span className="text-sm font-medium text-foreground">
-                                        {error ? 'Error' : spendData ? formatSpend(spendData.total_spend) : '...'}
-                                    </span>
-                                )}
-                            </div>
+                        <Zap className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center justify-center min-w-[60px]">
+                            {loading ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            ) : (
+                                <span className="text-sm font-medium text-foreground">
+                                    {error ? 'Error' : spendData ? formatSpend(spendData.total_spend) : '...'}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </TooltipTrigger>

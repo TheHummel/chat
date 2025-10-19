@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Github, MessagesSquare } from "lucide-react"
+import { Github, Bot } from "lucide-react"
 import Link from "next/link"
 import {
   Sidebar,
@@ -10,7 +10,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { SettingsPanel } from "./settings-panel"
 import { ThreadList } from "./thread-list"
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -18,14 +20,20 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props}>
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
-          <MessagesSquare className="size-6" />
-          <span className="font-semibold text-lg">Chat Assistant</span>
+          <Bot className="size-6" />
+          <span className="font-semibold text-lg">Local Chat</span>
+          <div className="ml-auto flex items-center">
+              <SidebarTrigger />
+            </div>
         </div>
+        
       </SidebarHeader>
 
       <SidebarContent>
         <ThreadList />
       </SidebarContent>
+
+      <SettingsPanel />
 
       <SidebarFooter>
         <SidebarMenu>
