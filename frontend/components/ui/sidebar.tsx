@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeftIcon } from "lucide-react"
+import { ChevronsLeft, ChevronsRight } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -258,7 +258,7 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state } = useSidebar();
 
   return (
     <Button
@@ -266,17 +266,30 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("size-7", className)}
+      className={cn(
+        "size-7 ",
+        state !== "expanded" && "bg-background/80 backdrop-blur-sm shadow-lg",
+        className
+      )}
       onClick={(event) => {
-        onClick?.(event)
-        toggleSidebar()
+        onClick?.(event);
+        toggleSidebar();
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      { state === "expanded" ? <ChevronsLeft /> : <ChevronsRight /> }
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
-  )
+  );
+}
+
+// sidebar trigger which simply wrapes sidebar trigger and only shows the icon when sidebar is collapsed
+function DynamicSidebarTrigger() {
+  const { state } = useSidebar();
+
+  return (
+    <>{state === "collapsed" ? <SidebarTrigger /> : null}</>
+  );
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
@@ -722,5 +735,6 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
+  DynamicSidebarTrigger,
   useSidebar,
 }

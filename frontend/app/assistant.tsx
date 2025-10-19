@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { RuntimeProvider } from "@/app/RuntimeProvider"
 import { Thread } from "@/components/assistant-ui/thread";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger, DynamicSidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -21,35 +21,13 @@ export const Assistant = () => {
     <RuntimeProvider modelProvider={selectedModel} selectedThreadId={currentThreadId}>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-20 shrink-0 items-center gap-2 border-b px-4 py-3">
-            <SidebarTrigger />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    <span className="font-medium">Assistant</span>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>
-                    {currentThread?.title || "New Chat"}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-            <div className="ml-auto flex items-center gap-4 py-2">
-              <SpendTracker />
-              <SmartModelSelector
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-              />
+        <div className="flex h-dvh w-full pr-0.5">
+          <SidebarInset className="p-5 bg-gray-100 flex flex-col overflow-hidden">
+            <div className="flex-1 rounded-lg shadow-md overflow-hidden relative">
+              <Thread />
             </div>
-          </header>
-          <Thread />
-        </SidebarInset>
+          </SidebarInset>
+        </div>
       </SidebarProvider>
     </RuntimeProvider>
   );

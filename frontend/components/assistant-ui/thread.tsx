@@ -17,41 +17,47 @@ import {
   SendHorizontalIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import * as m from "motion/react-m";
+import { LazyMotion, domAnimation, MotionConfig } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { ToolFallback } from "./tool-fallback";
+import { SidebarTrigger, useSidebar } from "../ui/sidebar";
 
 export const Thread: FC = () => {
   return (
-    <ThreadPrimitive.Root
-      className="bg-background box-border flex h-full flex-col overflow-hidden"
-      style={{
-        ["--thread-max-width" as string]: "42rem",
-      }}
-    >
-      <ThreadPrimitive.Viewport className="flex h-full flex-col items-center overflow-y-scroll scroll-smooth bg-inherit px-4 pt-8">
-        <ThreadWelcome />
-
-        <ThreadPrimitive.Messages
-          components={{
-            UserMessage: UserMessage,
-            EditComposer: EditComposer,
-            AssistantMessage: AssistantMessage,
+    <LazyMotion features={domAnimation}>
+      <MotionConfig reducedMotion="user">
+        <ThreadPrimitive.Root
+          className="aui-root aui-thread-root @container flex h-full flex-col bg-background relative"
+          style={{
+            ["--thread-max-width" as string]: "100%",
           }}
-        />
+        >
+          <ThreadPrimitive.Viewport className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll px-12 py-8">
+            <ThreadSidebarToggle />
+            <ThreadWelcome />
 
-        <ThreadPrimitive.If empty={false}>
-          <div className="min-h-8 flex-grow" />
-        </ThreadPrimitive.If>
-
-        <div className="sticky bottom-0 mt-3 flex w-full max-w-[var(--thread-max-width)] flex-col items-center justify-end rounded-t-lg bg-inherit pb-4">
-          <ThreadScrollToBottom />
-          <Composer />
-        </div>
-      </ThreadPrimitive.Viewport>
-    </ThreadPrimitive.Root>
+            <ThreadPrimitive.Messages
+              components={{
+                UserMessage,
+                EditComposer,
+                AssistantMessage,
+              }}
+            />
+            <ThreadPrimitive.If empty={false}>
+              <div className="aui-thread-viewport-spacer min-h-8 grow" />
+            </ThreadPrimitive.If>
+          </ThreadPrimitive.Viewport>
+          <div className="absolute bottom-0 left-0 right-0 z-50 flex w-full flex-col items-center justify-end px-12 pb-8">
+            <ThreadScrollToBottom />
+            <Composer />
+          </div>
+        </ThreadPrimitive.Root>
+      </MotionConfig>
+    </LazyMotion>
   );
 };
 
@@ -72,14 +78,52 @@ const ThreadScrollToBottom: FC = () => {
 const ThreadWelcome: FC = () => {
   return (
     <ThreadPrimitive.Empty>
-      <div className="flex w-full max-w-[var(--thread-max-width)] flex-grow flex-col">
-        <div className="flex w-full flex-grow flex-col items-center justify-center">
-          <p className="mt-4 font-medium">How can I help you today?</p>
+      <div className="aui-thread-welcome-root mx-auto my-auto flex w-full max-w-[var(--thread-max-width)] flex-grow flex-col">
+        <div className="aui-thread-welcome-center flex w-full flex-grow flex-col items-center justify-center">
+          <div className="aui-thread-welcome-message flex size-full flex-col justify-center px-8 text-center">
+            <m.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="aui-thread-welcome-message-motion-1 text-2xl font-semibold"
+            >
+              Hello there!
+            </m.div>
+            <m.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ delay: 0.1 }}
+              className="aui-thread-welcome-message-motion-2 text-2xl text-muted-foreground/65"
+            >
+              How can I help you?
+            </m.div>
+          </div>
         </div>
-        {/* <ThreadWelcomeSuggestions /> */}
       </div>
     </ThreadPrimitive.Empty>
   );
+};
+
+const ThreadSidebarToggle: FC = () => {
+  try {
+    const { state, isMobile, openMobile } = useSidebar();
+
+    const showOnDesktop = !isMobile && state === "collapsed";
+    const showOnMobile = isMobile && !openMobile;
+
+    if (!showOnDesktop && !showOnMobile) return null;
+
+    // fixed positioning so toggle is always reachable regardless of scroll
+    return (
+      <div className="fixed top-10 left-10 z-50">
+        <SidebarTrigger />
+      </div>
+    );
+  } catch (e) {
+    // if useSidebar is used outside provider, silently fail
+    return null;
+  }
 };
 
 const ThreadWelcomeSuggestions: FC = () => {
@@ -111,7 +155,7 @@ const ThreadWelcomeSuggestions: FC = () => {
 
 const Composer: FC = () => {
   return (
-    <ComposerPrimitive.Root className="focus-within:border-ring/20 flex w-full flex-wrap items-end rounded-lg border bg-inherit px-2.5 shadow-sm transition-colors ease-in">
+    <ComposerPrimitive.Root className="focus-within:border-ring/20 flex w-full flex-wrap items-end rounded-lg border bg-background/80 backdrop-blur-sm px-2.5 shadow-sm transition-colors ease-in">
       <ComposerPrimitive.Input
         rows={1}
         autoFocus
@@ -157,7 +201,7 @@ const UserMessage: FC = () => {
     <MessagePrimitive.Root className="grid auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 [&:where(>*)]:col-start-2 w-full max-w-[var(--thread-max-width)] py-4">
       <UserActionBar />
 
-      <div className="bg-muted text-foreground max-w-[calc(var(--thread-max-width)*0.8)] break-words rounded-3xl px-5 py-2.5 col-start-2 row-start-2">
+      <div className="bg-muted text-foreground max-w-[calc(var(--thread-max-width)*0.95)] break-normal rounded-3xl px-5 py-2.5 col-start-2 row-start-2">
         <MessagePrimitive.Content />
       </div>
 
@@ -202,7 +246,7 @@ const EditComposer: FC = () => {
 const AssistantMessage: FC = () => {
   return (
     <MessagePrimitive.Root className="grid grid-cols-[auto_auto_1fr] grid-rows-[auto_1fr] relative w-full max-w-[var(--thread-max-width)] py-4">
-      <div className="text-foreground max-w-[calc(var(--thread-max-width)*0.8)] break-words leading-7 col-span-2 col-start-2 row-start-1 my-1.5">
+      <div className="text-foreground max-w-[calc(var(--thread-max-width)*0.95)] break-normal leading-7 col-span-2 col-start-2 row-start-1 my-1.5">
         <MessagePrimitive.Content
           components={{ Text: MarkdownText, tools: { Fallback: ToolFallback } }}
         />
