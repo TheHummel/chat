@@ -36,7 +36,7 @@ export const Thread: FC = () => {
             ["--thread-max-width" as string]: "100%",
           }}
         >
-          <ThreadPrimitive.Viewport className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll px-12 py-8">
+          <ThreadPrimitive.Viewport className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll px-26 py-8">
             <ThreadSidebarToggle />
             <ThreadWelcome />
 
@@ -198,14 +198,23 @@ const ComposerAction: FC = () => {
 
 const UserMessage: FC = () => {
   return (
-    <MessagePrimitive.Root className="grid auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 [&:where(>*)]:col-start-2 w-full max-w-[var(--thread-max-width)] py-4">
-      <UserActionBar />
+    <MessagePrimitive.Root asChild>
+      <div
+        className="aui-user-message-root mx-auto grid w-full max-w-[var(--thread-max-width)] animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-4 duration-200 fade-in slide-in-from-bottom-1 first:mt-3 last:mb-5 [&:where(>*)]:col-start-2"
+        data-role="user"
+      >
 
-      <div className="bg-muted text-foreground max-w-[calc(var(--thread-max-width)*0.95)] break-normal rounded-3xl px-5 py-2.5 col-start-2 row-start-2">
-        <MessagePrimitive.Content />
+        <div className="relative col-start-2 min-w-0">
+          <div className="rounded-3xl bg-muted px-5 py-2.5 break-words text-foreground">
+            <MessagePrimitive.Parts />
+          </div>
+          <div className="absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 pr-2">
+            <UserActionBar />
+          </div>
+        </div>
+
+        <BranchPicker className="col-span-full col-start-1 row-start-3 -mr-1 justify-end" />
       </div>
-
-      <BranchPicker className="col-span-full col-start-1 row-start-3 -mr-1 justify-end" />
     </MessagePrimitive.Root>
   );
 };
