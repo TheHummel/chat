@@ -144,7 +144,7 @@ export function ThreadList() {
                             <div
                                 key={thread.id}
                                 className={cn(
-                                    "group flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors min-h-[60px]",
+                                    "group/thread flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors min-h-[60px]",
                                     currentThreadId === thread.id && "bg-accent"
                                 )}
                             >
@@ -191,7 +191,7 @@ export function ThreadList() {
                                                 {thread.message_count} messages • {formatDate(thread.updated_at)}
                                             </div>
                                         </button>
-                                        <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover/thread:opacity-100 transition-opacity">
                                             <TooltipIconButton
                                                 onClick={() => handleEditStart(thread.id, thread.title)}
                                                 className="hover:text-primary text-foreground size-6 p-0"
