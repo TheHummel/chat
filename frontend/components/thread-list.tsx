@@ -6,7 +6,7 @@ import { MessageSquare, Plus, Trash2, Edit3, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button"
+import { TooltipIconButton } from "@/components/ui/tooltip-icon-button"
 
 export function ThreadList() {
     const {

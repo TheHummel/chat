@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RuntimeProvider } from "@/app/RuntimeProvider"
-import { Thread } from "@/components/assistant-ui/thread";
+import { Thread } from "@/components/ui/thread";
 import { SidebarInset, SidebarProvider, SidebarTrigger, DynamicSidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";

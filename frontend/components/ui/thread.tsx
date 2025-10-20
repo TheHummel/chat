@@ -21,8 +21,8 @@ import * as m from "motion/react-m";
 import { LazyMotion, domAnimation, MotionConfig } from "motion/react";
 
 import { Button } from "@/components/ui/button";
-import { MarkdownText } from "@/components/assistant-ui/markdown-text";
-import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { MarkdownText } from "@/components/ui/markdown-text";
+import { TooltipIconButton } from "@/components/ui/tooltip-icon-button";
 import { ToolFallback } from "./tool-fallback";
 import { SidebarTrigger, useSidebar } from "../ui/sidebar";
 
