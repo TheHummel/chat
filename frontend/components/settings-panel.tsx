@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Settings2, Zap } from 'lucide-react'
+import { ChevronDown, ChevronUp, Settings2 } from 'lucide-react'
 
 import { SmartModelSelector } from './smart-model-selector'
-import { SpendTracker } from './spend-tracker'
+import { ModelInfoPanel } from './model-info-panel'
 
 export function SettingsPanel() {
   const [open, setOpen] = useState(true)
@@ -29,24 +29,17 @@ export function SettingsPanel() {
       {open && (
         <div className="border-muted space-y-4 border-t px-4 pb-4">
           <div>
-
             {/* model selection */}
             <div className="space-y-2">
               <label className="text-sm font-bold">AI Model</label>
-                <SmartModelSelector />
+              <SmartModelSelector />
             </div>
-                {/* credits display */}
-                <div className="space-y-2 mt-3">
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold">Available Credits</span>
-                </div>
-                <SpendTracker />
-                </div>
+
+            {/* model information */}
+            <ModelInfoPanel />
           </div>
         </div>
       )}
-
-      
     </div>
   )
 }
