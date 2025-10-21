@@ -24,7 +24,7 @@ export async function GET() {
             )
         }
 
-        const response = await fetch('https://api.mistral.ai/v1/models', {
+        const response = await fetch(process.env.MISTRAL_API_URL + '/v1/models', {
             headers: {
                 'Authorization': `Bearer ${apiKey}`
             }
