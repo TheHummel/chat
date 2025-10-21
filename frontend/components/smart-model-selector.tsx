@@ -9,6 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { useThreadStore } from "@/lib/thread-store"
 
 interface Model {
     id: string
@@ -21,11 +22,6 @@ interface ModelsData {
     default_models: Record<string, string>
 }
 
-interface SmartModelSelectorProps {
-    selectedModel: string
-    onModelChange: (model: string) => void
-}
-
 const providerDisplayNames = {
     openai: "OpenAI",
     gemini: "Google Gemini",
@@ -33,12 +29,14 @@ const providerDisplayNames = {
     azure: "Azure OpenAI",
     azure_ai: "Azure AI",
     ollama: "Ollama",
+    mistral: "Mistral AI",
     other: "Other"
 }
 
-export function SmartModelSelector({ selectedModel, onModelChange }: SmartModelSelectorProps) {
+export function SmartModelSelector() {
+    const { selectedModel, setSelectedModel } = useThreadStore()
     const [modelsData, setModelsData] = useState<ModelsData | null>(null)
-    const [selectedProvider, setSelectedProvider] = useState("openai")
+    const [selectedProvider, setSelectedProvider] = useState("mistral")
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
@@ -59,14 +57,19 @@ export function SmartModelSelector({ selectedModel, onModelChange }: SmartModelS
 
     const fetchModels = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/models')
+            // fetch Mistral models
+            const response = await fetch('/api/models')
             if (response.ok) {
                 const data = await response.json()
                 setModelsData(data)
-
-                if (!selectedModel && data.default_models.openai) {
-                    onModelChange(data.default_models.openai)
+                
+                // set default model if none selected
+                if (!selectedModel && data.default_models.mistral) {
+                    setSelectedProvider('mistral')
+                    setSelectedModel(data.default_models.mistral)
                 }
+            } else {
+                console.error('Failed to fetch Mistral models:', await response.text())
             }
         } catch (error) {
             console.error('Failed to fetch models:', error)
@@ -80,9 +83,9 @@ export function SmartModelSelector({ selectedModel, onModelChange }: SmartModelS
 
         // auto-select default model for this provider
         if (modelsData?.default_models[provider]) {
-            onModelChange(modelsData.default_models[provider])
+            setSelectedModel(modelsData.default_models[provider])
         } else if (modelsData?.providers[provider]?.[0]) {
-            onModelChange(modelsData.providers[provider][0].id)
+            setSelectedModel(modelsData.providers[provider][0].id)
         }
     }
 
@@ -133,7 +136,7 @@ export function SmartModelSelector({ selectedModel, onModelChange }: SmartModelS
             </Select>
 
             {/* Model Selector */}
-            <Select value={selectedModel} onValueChange={onModelChange}>
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
                 <SelectTrigger className="w-full h-9 text-sm">
                     <SelectValue placeholder="Select model">
                         {currentModel ? (

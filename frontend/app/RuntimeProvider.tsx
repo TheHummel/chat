@@ -27,10 +27,10 @@ const convertMessage = (message: MyMessage): ThreadMessageLike => {
 const streamBackendApi = async (
     messages: MyMessage[],
     threadId: string | null,
-    modelId: string = "gpt-4o",
+    modelId: string = "mistral-large-latest",
     onChunk: (chunk: string) => void
 ): Promise<{ threadId: string }> => {
-    const response = await fetch("http://localhost:8000/api/chat", {
+    const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -38,12 +38,13 @@ const streamBackendApi = async (
         body: JSON.stringify({
             messages: messages.map(msg => ({
                 role: msg.role,
-                content: msg.content
+                content: msg.content[0].text
             })),
-            thread_id: threadId,
-            model_provider: modelId  // Send full model ID
+            model: modelId
         }),
     });
+
+    console.log('API response status:', response.status);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -58,26 +59,9 @@ const streamBackendApi = async (
             const { done, value } = await reader.read();
             if (done) break;
 
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    try {
-                        const data = JSON.parse(line.slice(6));
-                        if (data.text) {
-                            onChunk(data.text);
-                        }
-                        if (data.thread_id && !newThreadId) {
-                            newThreadId = data.thread_id;
-                        }
-                        if (data.done) {
-                            return { threadId: newThreadId || "" };
-                        }
-                    } catch (e) {
-                        // ignore parsing errors
-                    }
-                }
+            const chunk = decoder.decode(value, { stream: true });
+            if (chunk) {
+                onChunk(chunk);
             }
         }
     }
@@ -85,18 +69,41 @@ const streamBackendApi = async (
     return { threadId: newThreadId || "" };
 };
 
+// save messages to backend database
+const saveMessagesToBackend = async (
+    threadId: string,
+    messages: MyMessage[]
+): Promise<void> => {
+    try {
+        const response = await fetch(`http://localhost:8000/api/chat/messages?thread_id=${threadId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(messages.map(msg => ({
+                role: msg.role,
+                content: msg.content
+            }))),
+        });
+
+        if (!response.ok) {
+            console.error('Failed to save messages:', response.status);
+        }
+    } catch (error) {
+        console.error('Error saving messages to backend:', error);
+    }
+};
+
 export function RuntimeProvider({
     children,
-    modelProvider = "gpt-4o",
-    selectedThreadId = null
 }: Readonly<{
     children: ReactNode;
-    modelProvider?: string;
-    selectedThreadId?: string | null;
 }>) {
+    const { currentThreadId, threads, selectedModel } = useThreadStore();
+
     const [isRunning, setIsRunning] = useState(false);
     const [messages, setMessages] = useState<MyMessage[]>([]);
-    const [threadId, setThreadId] = useState<string | null>(selectedThreadId);
+    const [threadId, setThreadId] = useState<string | null>(currentThreadId);
     const [currentStreamingMessage, setCurrentStreamingMessage] = useState<string>("");
     const [isLoadingThread, setIsLoadingThread] = useState(false);
 
@@ -130,14 +137,14 @@ export function RuntimeProvider({
 
     // handle thread selection changes
     useEffect(() => {
-        if (selectedThreadId && selectedThreadId !== threadId) {
-            setThreadId(selectedThreadId);
-            loadThreadMessages(selectedThreadId);
-        } else if (!selectedThreadId && threadId) {
+        if (currentThreadId && currentThreadId !== threadId) {
+            setThreadId(currentThreadId);
+            loadThreadMessages(currentThreadId);
+        } else if (!currentThreadId && threadId) {
             setThreadId(null);
             setMessages([]);
         }
-    }, [selectedThreadId]);
+    }, [currentThreadId]);
 
     const onNew = async (message: AppendMessage) => {
         if (message.content[0]?.type !== "text")
@@ -155,12 +162,31 @@ export function RuntimeProvider({
         setCurrentStreamingMessage("");
 
         try {
+            // create thread if it doesn't exist
+            let currentActiveThreadId = threadId;
+            if (!currentActiveThreadId) {
+                const createResponse = await fetch('http://localhost:8000/api/threads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: input.slice(0, 50) }) // use first 50 chars as title
+                });
+                
+                if (createResponse.ok) {
+                    const newThread = await createResponse.json();
+                    currentActiveThreadId = newThread.id;
+                    setThreadId(currentActiveThreadId);
+                    setCurrentThread(currentActiveThreadId);
+                } else {
+                    console.error('Failed to create thread');
+                }
+            }
+
             let assistantText = "";
 
             const { threadId: newThreadId } = await streamBackendApi(
                 [...messages, userMessage],
                 threadId,
-                modelProvider,  // This is now the full model ID
+                selectedModel,
                 (chunk: string) => {
                     assistantText += chunk;
                     setCurrentStreamingMessage(assistantText);
@@ -178,6 +204,12 @@ export function RuntimeProvider({
             if (newThreadId && !threadId) {
                 setThreadId(newThreadId);
                 setCurrentThread(newThreadId);
+            }
+
+            // save messages to database
+            const saveThreadId = newThreadId || currentActiveThreadId;
+            if (saveThreadId) {
+                await saveMessagesToBackend(saveThreadId, [userMessage, assistantMessage]);
             }
 
             await fetchThreads();
@@ -225,7 +257,7 @@ export function RuntimeProvider({
             await streamBackendApi(
                 newMessages,
                 threadId,
-                modelProvider,
+                selectedModel,
                 (chunk: string) => {
                     assistantText += chunk;
                     setCurrentStreamingMessage(assistantText);
@@ -239,6 +271,11 @@ export function RuntimeProvider({
 
             setMessages([...newMessages, assistantMessage]);
             setCurrentStreamingMessage("");
+
+            // save edited messages to database
+            if (threadId) {
+                await saveMessagesToBackend(threadId, [editedMessage, assistantMessage]);
+            }
 
             await fetchThreads();
 
@@ -290,7 +327,7 @@ export function RuntimeProvider({
             await streamBackendApi(
                 messagesToKeep,
                 threadId,
-                modelProvider,
+                selectedModel,
                 (chunk: string) => {
                     assistantText += chunk;
                     setCurrentStreamingMessage(assistantText);
@@ -304,6 +341,11 @@ export function RuntimeProvider({
 
             setMessages([...messagesToKeep, assistantMessage]);
             setCurrentStreamingMessage("");
+
+            // save reloaded assistant message to database
+            if (threadId) {
+                await saveMessagesToBackend(threadId, [assistantMessage]);
+            }
 
             await fetchThreads();
 
@@ -331,8 +373,8 @@ export function RuntimeProvider({
     const runtime = useExternalStoreRuntime({
         isRunning: isRunning || isLoadingThread,
         messages: allMessages,
-        setMessages: (newMessages: MyMessage[]) => {
-            const filteredMessages = newMessages.filter(msg =>
+        setMessages: (newMessages: readonly MyMessage[]) => {
+            const filteredMessages = Array.from(newMessages).filter(msg =>
                 !(msg.role === "assistant" && currentStreamingMessage &&
                     msg.content[0]?.text === currentStreamingMessage)
             );

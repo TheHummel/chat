@@ -12,6 +12,7 @@ interface ThreadStore {
     threads: ThreadItem[]
     currentThreadId: string | null
     isLoading: boolean
+    selectedModel: string
 
     // actions
     setThreads: (threads: ThreadItem[]) => void
@@ -20,6 +21,7 @@ interface ThreadStore {
     deleteThread: (id: string) => void
     setCurrentThread: (id: string | null) => void
     setLoading: (loading: boolean) => void
+    setSelectedModel: (model: string) => void
 
     // API calls
     fetchThreads: () => Promise<void>
@@ -33,6 +35,7 @@ export const useThreadStore = create<ThreadStore>((set, get) => ({
     threads: [],
     currentThreadId: null,
     isLoading: false,
+    selectedModel: 'mistral-large-latest', // default model
 
     setThreads: (threads) => set({ threads }),
     addThread: (thread) => set((state) => ({
@@ -49,6 +52,7 @@ export const useThreadStore = create<ThreadStore>((set, get) => ({
     })),
     setCurrentThread: (id) => set({ currentThreadId: id }),
     setLoading: (loading) => set({ isLoading: loading }),
+    setSelectedModel: (model) => set({ selectedModel: model }),
 
     // API calls
     fetchThreads: async () => {

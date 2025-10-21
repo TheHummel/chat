@@ -8,8 +8,6 @@ import { SpendTracker } from './spend-tracker'
 
 export function SettingsPanel() {
   const [open, setOpen] = useState(true)
-  
-  const [selectedModel, setSelectedModel] = useState("gpt-4o");
 
   return (
     <div className='shadow-[0_-25px_20px_-25px_rgba(0,0,0,0.1)]'>
@@ -35,10 +33,7 @@ export function SettingsPanel() {
             {/* model selection */}
             <div className="space-y-2">
               <label className="text-sm font-bold">AI Model</label>
-                <SmartModelSelector
-                    selectedModel={selectedModel}
-                    onModelChange={setSelectedModel}
-                />
+                <SmartModelSelector />
             </div>
                 {/* credits display */}
                 <div className="space-y-2 mt-3">
