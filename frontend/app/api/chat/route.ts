@@ -1,24 +1,25 @@
-import { openai } from "@ai-sdk/openai";
-import { frontendTools } from "@assistant-ui/react-ai-sdk";
+import { mistral } from "@ai-sdk/mistral";
 import { streamText } from "ai";
 
 export const runtime = "edge";
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages, system, tools } = await req.json();
+  try {
+    const { messages, model: modelId } = await req.json();
 
-  const result = streamText({
-    model: openai("gpt-4o"),
-    messages,
-    // forward system prompt and tools from the frontend
-    toolCallStreaming: true,
-    system,
-    tools: {
-      ...frontendTools(tools),
-    },
-    onError: console.log,
-  });
 
-  return result.toDataStreamResponse();
+    const result = streamText({
+      model: mistral(modelId),
+      messages,
+    });
+
+    return result.toTextStreamResponse();
+  } catch (error) {
+    console.error("Route error:", error);
+    return new Response(JSON.stringify({ error: String(error) }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
