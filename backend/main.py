@@ -14,6 +14,7 @@ from schemas import (
     ThreadResponse,
     ThreadListResponse,
     MessageResponse,
+    MessageCreate,
 )
 import crud
 
@@ -96,6 +97,41 @@ def delete_all_threads(db: Session = Depends(get_db)):
 def get_messages(thread_id: str, db: Session = Depends(get_db)):
     """Get all messages for a thread"""
     return crud.get_messages(db, thread_id)
+
+
+@app.post("/api/chat/message", response_model=MessageResponse)
+def save_message(thread_id: str, message: MessageCreate, db: Session = Depends(get_db)):
+    """Save a single message to a thread"""
+    # verify thread exists
+    thread = crud.get_thread(db, thread_id)
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+
+    # save message
+    saved_message = crud.create_message(db, message, thread_id)
+    return saved_message
+
+
+@app.post("/api/chat/messages")
+def save_messages(
+    thread_id: str, messages: List[MessageCreate], db: Session = Depends(get_db)
+):
+    """Save multiple messages to a thread (batch)"""
+    # verify thread exists
+    thread = crud.get_thread(db, thread_id)
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+
+    # save all messages
+    saved_messages = []
+    for message in messages:
+        saved_message = crud.create_message(db, message, thread_id)
+        saved_messages.append(saved_message)
+
+    return {
+        "message": f"Saved {len(saved_messages)} messages",
+        "messages": saved_messages,
+    }
 
 
 @app.get("/api/spend")
