@@ -1,4 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# FRONTEND
 
 # dependencies
 frontend/node_modules
@@ -32,7 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 frontend/.env*
-!.env.example
+!.env.local.example
 
 # vercel
 frontend/.vercel
@@ -42,6 +42,7 @@ frontend/*.tsbuildinfo
 frontend/next-env.d.ts
 
 
-# python
+# BACKEND
 __pycache__
 .env
+venv
