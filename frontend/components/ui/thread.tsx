@@ -36,7 +36,7 @@ export const Thread: FC = () => {
             ["--thread-max-width" as string]: "100%",
           }}
         >
-          <ThreadPrimitive.Viewport className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll px-26 py-8">
+          <ThreadPrimitive.Viewport className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll px-26 py-8 pb-16">
             <ThreadSidebarToggle />
             <ThreadWelcome />
 
