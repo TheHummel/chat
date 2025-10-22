@@ -1,16 +1,18 @@
-# Chat App with Persistent Memory
+# Local Chat APP
 
-A full-stack chat application built with Next.js, FastAPI, and PostgreSQL, featuring persistent conversation history and integration with Mistral AI models.
+A full-stack chat application built with Next.js, FastAPI, and PostgreSQL. Features conversation history storage and integration with Mistral AI models.
 
 **Built for Mistral AI SWE internship application.**
 
+![Local Chat](./local_chat.jpg)
+
 ## Features
 
-- Persistent chat history stored in PostgreSQL database
-- Integration with Mistral AI models via API
+- Chat history stored in PostgreSQL
+- Integration with Mistral AI API
 - Thread-based conversation management
-- Modern UI built with Next.js and assistant-ui components
-- Real-time streaming responses from AI models
+- Modern UI with Next.js and assistant-ui
+- Streaming responses
 
 ## Architecture
 
@@ -29,7 +31,7 @@ A full-stack chat application built with Next.js, FastAPI, and PostgreSQL, featu
 
 ## Quick Setup
 
-### Option 1: Automated Setup (Recommended)
+### Automated Setup
 
 ```bash
 # Run setup script
@@ -48,7 +50,7 @@ The application will be available at:
 - Backend API: http://localhost:8000
 - PostgreSQL: localhost:5432
 
-### Option 2: Manual Setup
+### Manual Setup
 
 **Backend:**
 
