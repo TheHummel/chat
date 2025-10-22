@@ -28,7 +28,8 @@ const streamBackendApi = async (
     messages: MyMessage[],
     threadId: string | null,
     modelId: string = "mistral-large-latest",
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
+    signal?: AbortSignal
 ): Promise<{ threadId: string }> => {
     const response = await fetch("/api/chat", {
         method: "POST",
@@ -42,9 +43,9 @@ const streamBackendApi = async (
             })),
             model: modelId
         }),
+        signal,
     });
 
-    console.log('API response status:', response.status);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -55,14 +56,18 @@ const streamBackendApi = async (
     let newThreadId = threadId;
 
     if (reader) {
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            if (chunk) {
-                onChunk(chunk);
+                const chunk = decoder.decode(value, { stream: true });
+                if (chunk) {
+                    onChunk(chunk);
+                }
             }
+        } finally {
+            reader.releaseLock();
         }
     }
 
@@ -106,6 +111,7 @@ export function RuntimeProvider({
     const [threadId, setThreadId] = useState<string | null>(currentThreadId);
     const [currentStreamingMessage, setCurrentStreamingMessage] = useState<string>("");
     const [isLoadingThread, setIsLoadingThread] = useState(false);
+    const [abortController, setAbortController] = useState<AbortController | null>(null);
 
     const { fetchThreads, updateThread, setCurrentThread } = useThreadStore();
 
@@ -161,6 +167,10 @@ export function RuntimeProvider({
         setIsRunning(true);
         setCurrentStreamingMessage("");
 
+        // create new abort controller for this request
+        const controller = new AbortController();
+        setAbortController(controller);
+
         try {
             // create thread if it doesn't exist
             let currentActiveThreadId = threadId;
@@ -190,7 +200,8 @@ export function RuntimeProvider({
                 (chunk: string) => {
                     assistantText += chunk;
                     setCurrentStreamingMessage(assistantText);
-                }
+                },
+                controller.signal
             );
 
             const assistantMessage: MyMessage = {
@@ -215,6 +226,10 @@ export function RuntimeProvider({
             await fetchThreads();
 
         } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                setCurrentStreamingMessage("");
+                return;
+            }
             console.error("Error calling backend:", error);
             const errorMessage: MyMessage = {
                 role: "assistant",
@@ -224,6 +239,7 @@ export function RuntimeProvider({
             setCurrentStreamingMessage("");
         } finally {
             setIsRunning(false);
+            setAbortController(null);
         }
     };
 
@@ -251,6 +267,10 @@ export function RuntimeProvider({
         setIsRunning(true);
         setCurrentStreamingMessage("");
 
+        // create new abort controller for this request
+        const controller = new AbortController();
+        setAbortController(controller);
+
         try {
             let assistantText = "";
 
@@ -261,7 +281,8 @@ export function RuntimeProvider({
                 (chunk: string) => {
                     assistantText += chunk;
                     setCurrentStreamingMessage(assistantText);
-                }
+                },
+                controller.signal
             );
 
             const assistantMessage: MyMessage = {
@@ -280,6 +301,10 @@ export function RuntimeProvider({
             await fetchThreads();
 
         } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                setCurrentStreamingMessage("");
+                return;
+            }
             console.error("Error editing message:", error);
             const errorMessage: MyMessage = {
                 role: "assistant",
@@ -289,6 +314,7 @@ export function RuntimeProvider({
             setCurrentStreamingMessage("");
         } finally {
             setIsRunning(false);
+            setAbortController(null);
         }
     };
 
@@ -321,6 +347,10 @@ export function RuntimeProvider({
         setIsRunning(true);
         setCurrentStreamingMessage("");
 
+        // create new abort controller for this request
+        const controller = new AbortController();
+        setAbortController(controller);
+
         try {
             let assistantText = "";
 
@@ -331,7 +361,8 @@ export function RuntimeProvider({
                 (chunk: string) => {
                     assistantText += chunk;
                     setCurrentStreamingMessage(assistantText);
-                }
+                },
+                controller.signal
             );
 
             const assistantMessage: MyMessage = {
@@ -350,6 +381,10 @@ export function RuntimeProvider({
             await fetchThreads();
 
         } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                setCurrentStreamingMessage("");
+                return;
+            }
             console.error("Error reloading message:", error);
             const errorMessage: MyMessage = {
                 role: "assistant",
@@ -359,6 +394,16 @@ export function RuntimeProvider({
             setCurrentStreamingMessage("");
         } finally {
             setIsRunning(false);
+            setAbortController(null);
+        }
+    };
+
+    const onCancel = async () => {
+        if (abortController) {
+            abortController.abort();
+            setIsRunning(false);
+            setCurrentStreamingMessage("");
+            setAbortController(null);
         }
     };
 
@@ -385,6 +430,7 @@ export function RuntimeProvider({
         onNew,
         onEdit,
         onReload,
+        onCancel,
     });
 
     return (
