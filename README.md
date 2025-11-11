@@ -2,8 +2,6 @@
 
 A full-stack chat application built with Next.js, FastAPI, and PostgreSQL. Features conversation history storage and integration with Mistral AI models.
 
-**Built for Mistral AI SWE internship application.**
-
 ![Local Chat](./local_chat.jpg)
 
 ## Features
